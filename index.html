@@ -1,41 +1,84 @@
 <!DOCTYPE html>
 
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.js"></script>
 </head>
 
 <body>
 
     <script>
+        const baseUrl = 'http://localhost:5000/static/assets'
+
+        function planet(name, radius, distToSun){
+            return {
+                name: name,
+                radius: radius,
+                distToSun: distToSun
+            }
+        }
+
+        const planets = [
+            planet('jupiter', 71492 , 778),
+            planet('mars', 	3396 , 227),
+            planet('mercure', 2439 , 58),
+            planet('neptune', 24622 , 4498), 
+            planet('soleil', 696342,0), 
+            planet('terre', 6371 ,149), 
+            planet('uranus', 25362,2870),
+            planet('venus', 6051 ,108)
+        ]
+
+        function imagePath(name){
+            return `assets/${name}.png`
+        }
+
+        const width = 800;
+        const height = 600;
+        const maxDistToSun = 4498;
+
+        function scaleRadius(dist){
+            if(dist<1){
+                return 0;
+
+            }else if(dist>700){
+                const maxDist = maxDistToSun-300;
+                return 150+(dist-300)*150/maxDist;
+            }else{
+                return dist/300*150;
+            }
+        }
+
+        function planetPosition(planet){
+            const center = { x: width/2, y :height/2};
+            return { x: center.x + scaleRadius(planet.distToSun), y : center.y};
+        }
+
+       
+
         class Example extends Phaser.Scene {
 
             preload() {
-                debugger;
-                this.load.setBaseURL('https://labs.phaser.io');
+              
+                const baseUrl = 'http://localhost:5000'
+                this.load.setBaseURL(baseUrl);
 
-                this.load.image('sky', 'assets/skies/space3.png');
-                this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-                this.load.image('red', 'assets/particles/red.png');
+                planets.forEach(planet => this.load.image(planet.name, imagePath(planet.name)))
             }
 
             create() {
 
-                console;
-                this.add.image(400, 300, 'sky');
+            
+                this.add.rectangle(400, 300, 800, 600, '#000000', 1);
+                
+                planets.forEach(planet => {
+                    const circle = this.add.circle(400, 300, scaleRadius(planet.distToSun));
+                    circle.setStrokeStyle(1, Phaser.Display.Color.GetColor(255, 255, 255), 1.0)
 
-                const particles = this.add.particles(0, 0, 'red', {
-                    speed: 100,
-                    scale: { start: 1, end: 0 },
-                    blendMode: 'ADD'
-                });
-
-                const logo = this.physics.add.image(400, 100, 'logo');
-
-                logo.setVelocity(100, 200);
-                logo.setBounce(1, 1);
-                logo.setCollideWorldBounds(true);
-
-                particles.startFollow(logo);
+                    const position = planetPosition(planet);
+                    this.add.image(position.x, position.y, planet.name);    
+                })
+            
+               
             }
         }
 
